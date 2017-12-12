@@ -1,0 +1,73 @@
+---
+title: "Exercise1_Toy"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook for the Exercise 1 of the Data Wrangling section. The dataset used is called as "toy".
+
+# Load the dataset in R:
+
+```{r}
+toy <- read.csv("F:/Springboard/Data Wrangling/refine_original.csv", header = TRUE)
+```
+
+# Install following packages to munge data:
+
+```{r}
+install.packages("dplyr")
+library(dplyr)
+
+install.packages("tidyr")
+library(tidyr)
+```
+
+# 1: Clean up brand names
+
+```{r}
+toy <- toy %>% mutate(company = sub("^p.*|^P.*|^f.*", "philips", company)) %>% 
+               mutate(company = sub("^a.*|^A.*", "akzo", company)) %>% 
+               mutate(company = sub("^v.*|^V.*", "van houten", company)) %>% 
+               mutate(company = sub("^u.*|^U.*", "unilever", company))
+```
+
+# 2: Separate product code and number
+
+```{r}
+toy <- toy %>% separate("Product.code...number", c("product_code", "product_number"), sep = "-")
+```
+
+# 3: Add product categories
+
+```{r}
+toy <- toy %>% mutate(product_category = ifelse(product_code == 'p', "Smartphone", "")) %>% 
+               mutate(product_category = ifelse(product_code == 'x', "Laptop", product_category)) %>% 
+               mutate(product_category = ifelse(product_code == 'v', "TV", product_category)) %>% 
+               mutate(product_category = ifelse(product_code == 'q', "Tablet", product_category))
+```
+
+# 4: Add full address for geocoding
+
+```{r}
+toy <- toy %>% unite("full_address", c(address, city, country), sep = ",")
+```
+
+# 5: Create dummy variables for company and product category
+
+```{r}
+toy <- toy %>% mutate(company_philips = ifelse(company == "philips", 1, 0)) %>% 
+               mutate(compnay_akzo = ifelse(company == "akzo", 1, 0)) %>% 
+               mutate(company_van_houten = ifelse(company == "van houten", 1, 0)) %>% 
+               mutate(company_unilever = ifelse(company == "unilever", 1, 0))
+
+toy <- toy %>% mutate(product_smartphone = ifelse(product_code == "p", 1, 0)) %>% 
+               mutate(product_tv = ifelse(product_code == "v", 1, 0)) %>% 
+               mutate(product_laptop = ifelse(product_code == "x", 1, 0)) %>% 
+               mutate(product_tablet = ifelse(product_code == "q", 1, 0))
+```
+
+# Export new clean dataset as csv:
+
+```{r}
+write.csv(toy, "refine_clean.csv")
+```
+
